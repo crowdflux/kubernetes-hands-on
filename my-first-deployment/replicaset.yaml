@@ -1,0 +1,29 @@
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
+metadata:
+  annotations: {}
+  labels:
+    app: hello-kubernetes-custom
+  name: hello-kubernetes-custom
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-kubernetes-custom
+  template:
+    metadata:
+      labels:
+        app: hello-kubernetes-custom
+    spec:
+      containers:
+      - env:
+        - name: MESSAGE
+          value: I just deployed this on Kubernetes!
+        image: paulbouwer/hello-kubernetes:1.5
+        imagePullPolicy: IfNotPresent
+        name: hello-kubernetes
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources: {}
