@@ -112,7 +112,8 @@
 ** Let us take a look at nginx helm chart @ https://github.com/bitnami/charts/tree/master/bitnami/nginx**
 
 1. Initialize helm client
-	`helm init`
+	`kubectl apply -f tiller-rbac.yaml`
+	`helm init --service-account tiller`
 2. Add the helm repository
 	`helm repo add bitnami https://charts.bitnami.com/bitnami`
 	`helm repo list`
@@ -125,3 +126,33 @@
 5. Let's rollback the helm release
 	`helm history [RELEASE-NAME]`
 	`helm rollback [RELEASE-NAME] 0`
+
+
+### communication between applications inside kubernetes
+`kubectl get svc -n nginx`
+`kubectl exec -it [pod-name]`
+`curl http://[nginx-svc-name].[namespace]`
+
+### Autoscaling
+
+Install metrics server
+`helm install stable/metrics-server --name metrics-server --version 2.0.4 --namespace kube-system`
+
+Check the status of the metrics server
+`kubectl get apiservice v1beta1.metrics.k8s.io -o yaml`
+
+Deploy a php sample application
+`kubectl run php-apache --image=k8s.gcr.io/hpa-example --requests=cpu=50m --expose --port=80`
+
+Create an autoscaler
+`kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=10`
+
+`kubectl get hpa`
+
+Let's generate the load
+`kubectl run -i --tty load-generator --image=busybox /bin/sh`
+
+`while true; do wget -q -O - http://php-apache; done`
+
+Open another terminal and wathc the hpa scale the pods
+`kubectl get hpa -w`
